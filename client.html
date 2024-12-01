@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat-Room App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(to bottom right, #fdfbfa, #e2dcd7);
+        }
+
+        #login-container,
+        #chat-container {
+            display: none;
+            background: #f5efe9;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+        }
+
+        #login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #login-form input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #d1c4b8;
+            border-radius: 5px;
+            background-color: #fffaf6;
+            font-size: 14px;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        #login-form input:focus {
+            border-color: #d5b89c;
+            background-color: #fff;
+        }
+
+        #login-form button {
+            background-color: #d5b89c;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #login-form button:hover {
+            background-color: #b78b6e;
+        }
+
+        #login-form button:active {
+            transform: scale(0.98);
+        }
+
+        #chat-container {
+            display: none;
+            flex-direction: column;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        #message-display {
+            flex-grow: 1;
+            width: 100%;
+            height: 200px;
+            overflow-y: auto;
+            border: 1px solid #d1c4b8;
+            background: #fff;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #message-form {
+            display: flex;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #d1c4b8;
+            border-radius: 5px;
+            margin-right: 10px;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        #message-input:focus {
+            border-color: #d5b89c;
+            background-color: #fff;
+        }
+
+        #message-form button {
+            background-color: #d5b89c;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #message-form button:hover {
+            background-color: #b78b6e;
+        }
+
+        #message-form button:active {
+            transform: scale(0.98);
+        }
+
+        #message-display div {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-radius: 3px;
+            background-color: #f9f6f2;
+            transition: transform 0.2s ease;
+        }
+
+        #message-display div:hover {
+            transform: translateX(5px);
+            background-color: #f1ece6;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="login-container">
+        <form id="login-form">
+            <input type="text" id="username-input" placeholder="Enter your username" required>
+            <input type="text" id="room-input" placeholder="Enter room ID" required>
+            <button id='start-chatting' type="submit">Start Chatting</button>
+        </form>
+    </div>
+
+    <div id="chat-container">
+        <div id="message-display">
+        </div>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type your message" required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io.connect('http://localhost:3000');
+
+        const loginContainer = document.getElementById('login-container');
+        const chatContainer = document.getElementById('chat-container');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const messageDisplay = document.getElementById('message-display');
+
+        let username = '';
+        let room = '';
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            username = document.getElementById('username-input').value;
+            room = document.getElementById('room-input').value;
+
+            loginContainer.style.display = 'none';
+            chatContainer.style.display = 'flex';
+
+            socket.emit('join', { username, room });
+        });
+
+        messageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value;
+
+            socket.emit('sendMessage', { username, message, room });
+
+            messageInput.value = '';
+        });
+
+        socket.on('message', (message) => {
+            const messageElement = document.createElement('div');
+            messageElement.innerHTML = `<strong>${message.username ? message.username + ":" : ""}</strong> ${message.text}`;
+            messageDisplay.appendChild(messageElement);
+            messageDisplay.scrollTop = messageDisplay.scrollHeight;
+        });
+    </script>
+</body>
+
+</html>
