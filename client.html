@@ -196,6 +196,15 @@
             messageDisplay.appendChild(messageElement);
             messageDisplay.scrollTop = messageDisplay.scrollHeight;
         });
+        socket.on('previousMessages', (previousMessages) => {
+            // Display the previous messages in the message display area
+            // write your code here
+            previousMessages.forEach(message => {
+                const messageElement = document.createElement('div');
+                messageElement.innerHTML = `<strong>${message.username? message.username + ":" : ""}</strong> ${message.text}`;
+                messageDisplay.appendChild(messageElement);
+            });
+        });
     </script>
 </body>
 
